@@ -21,7 +21,7 @@ const ICONO_PERFIL: Record<PerfilId, React.ReactNode> = {
 
 function Icono({ children, className = "size-4" }: { children: React.ReactNode; className?: string }) {
   return (
-    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden className={className}>
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden className={`shrink-0 ${className}`}>
       {children}
     </svg>
   );
@@ -102,9 +102,9 @@ export function Ingreso({
   return (
     <div className="grid w-full max-w-6xl overflow-hidden rounded-3xl bg-surface shadow-elevada ring-1 ring-navy/5 lg:grid-cols-[2fr_3fr]">
       {/* ------------ Panel de marca ------------ */}
-      <aside className="panel-kora relative flex flex-col overflow-hidden px-6 py-6 text-white sm:px-10 lg:py-10">
-        <Orbitas className="absolute -top-24 -right-24 size-[26rem] opacity-70 max-lg:hidden" />
-        <Orbitas className="absolute -bottom-40 -left-32 size-[22rem] rotate-180 opacity-40 max-lg:hidden" />
+      <aside className="panel-kora relative isolate flex flex-col overflow-hidden px-6 py-6 text-white sm:px-10 lg:py-10">
+        {/* Decoración: esquinas opuestas, detrás del contenido (z-0) y sin cruzar el logo ni los textos. */}
+        <Orbitas className="absolute -top-48 -right-56 -z-10 size-[18rem] opacity-55 max-lg:hidden" />
 
         <p className="anim-entrar relative inline-flex w-fit items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-3 py-1.5 text-[11px] font-semibold tracking-[0.12em] uppercase backdrop-blur-sm max-lg:hidden">
           <span className="relative grid size-2 place-items-center rounded-full bg-cielo text-cielo anim-pulso" />
@@ -112,7 +112,7 @@ export function Ingreso({
         </p>
 
         <div className="relative flex items-center gap-4 lg:mt-10 lg:flex-col lg:items-start">
-          <Image src="/kora-emblema-claro.png" alt="" width={160} height={160} priority className="anim-flotar size-14 drop-shadow-[0_12px_30px_rgb(47_127_234/0.45)] lg:size-36" />
+          <Image src="/kora-emblema-claro.png" alt="" width={160} height={160} priority className="anim-flotar size-14 drop-shadow-[0_10px_24px_rgb(47_127_234/0.3)] lg:size-32" />
           <div className="anim-entrar">
             <Logotipo claro className="text-3xl lg:text-5xl" />
             <p className="mt-1.5 text-sm font-medium tracking-wide text-blue-200/90 lg:text-base">Plataforma de Gestión Académica</p>
@@ -228,7 +228,7 @@ export function Ingreso({
           <h2 id="paso-2" className="text-sm font-semibold tracking-wide text-ink-soft uppercase">
             2. Elige tu perfil{seleccion ? ` en ${seleccion.nombre}` : ""}
           </h2>
-          <div role="radiogroup" aria-label="Perfil" className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-6">
+          <div role="radiogroup" aria-label="Perfil" className="grid grid-cols-2 gap-2 sm:grid-cols-3">
             {PERFILES.map((p) => {
               const activo = p.id === perfil;
               return (
@@ -238,7 +238,7 @@ export function Ingreso({
                   role="radio"
                   aria-checked={activo}
                   onClick={() => setPerfil(p.id)}
-                  className={`btn-kora flex h-11 items-center justify-center gap-2 rounded-lg border text-sm font-medium transition-colors ${
+                  className={`btn-kora flex h-11 min-w-0 items-center justify-center gap-2 rounded-lg border px-2 text-sm font-medium whitespace-nowrap transition-colors ${
                     activo ? "border-petroleo bg-petroleo text-white shadow-[0_6px_16px_-8px_rgb(18_58_156/0.7)]" : "border-line text-ink-soft hover:border-cielo/50 hover:bg-cielo-soft"
                   } ${estado.campo === "perfil" && !activo ? "border-warn-line" : ""}`}
                 >
