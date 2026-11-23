@@ -2,18 +2,31 @@
 
 import { useActionState, useState, useTransition } from "react";
 import { archivarAviso, fijarAviso, publicarAviso, type EstadoAviso } from "../actions";
+import type { OpcionesAlcance } from "../server";
 
 const inicial: EstadoAviso = { ok: false, error: null };
 const campo =
   "w-full rounded-lg border border-line bg-surface px-3 py-2 text-[13px] outline-none focus-visible:border-cielo focus-visible:ring-2 focus-visible:ring-cielo/20";
 
-export function FormAviso() {
+export function FormAviso({ grados }: { grados: OpcionesAlcance }) {
   const [estado, accion, pendiente] = useActionState(publicarAviso, inicial);
+  const [gradoId, setGradoId] = useState("");
+  const [cursoId, setCursoId] = useState("");
+  const cursos = grados.find((g) => g.id === gradoId)?.cursos ?? [];
+  const resumenDestino = cursoId
+    ? `Solo el curso ${cursos.find((c) => c.id === cursoId)?.codigo}`
+    : gradoId
+      ? `Todo el grado ${grados.find((g) => g.id === gradoId)?.nombre} (${cursos.length} cursos)`
+      : "Todo el colegio";
   const [clave, setClave] = useState(0);
   const [previo, setPrevio] = useState(estado);
   if (previo !== estado) {
     setPrevio(estado);
-    if (estado.ok) setClave((k) => k + 1); // limpia el formulario después de publicar
+    if (estado.ok) {
+      setClave((k) => k + 1); // limpia el formulario después de publicar
+      setGradoId("");
+      setCursoId("");
+    }
   }
 
   return (
@@ -37,6 +50,42 @@ export function FormAviso() {
           </select>
         </label>
       </div>
+      <fieldset className="space-y-2 rounded-xl border border-line bg-canvas p-3">
+        <legend className="px-1 text-xs font-semibold text-ink-soft">¿A qué grado o curso?</legend>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <label className="space-y-1 text-xs font-medium text-ink-soft">
+            Grado
+            <select
+              name="gradeLevelId"
+              value={gradoId}
+              onChange={(e) => {
+                setGradoId(e.target.value);
+                setCursoId("");
+              }}
+              className={campo}
+            >
+              <option value="">Todos los grados</option>
+              {grados.map((g) => (
+                <option key={g.id} value={g.id}>
+                  {g.nombre}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="space-y-1 text-xs font-medium text-ink-soft">
+            Curso
+            <select name="groupId" value={cursoId} onChange={(e) => setCursoId(e.target.value)} disabled={!gradoId} className={`${campo} disabled:opacity-50`}>
+              <option value="">{gradoId ? "Todos los cursos del grado" : "Elija primero un grado"}</option>
+              {cursos.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.codigo}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+        <p className="text-[11px] font-semibold text-brand">Destino: {resumenDestino}</p>
+      </fieldset>
       <label className="block space-y-1 text-xs font-medium text-ink-soft">
         Título
         <input name="titulo" required minLength={3} maxLength={140} placeholder="Ej.: Reunión de padres del cuarto periodo" className={campo} />

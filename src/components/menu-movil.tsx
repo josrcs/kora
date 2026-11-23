@@ -36,7 +36,7 @@ export function MenuMovil({ children }: { children: ReactNode }) {
       {abierto && (
         <div className="fixed inset-0 z-40" role="dialog" aria-modal="true" aria-label="Menú">
           <button type="button" aria-label="Cerrar menú" onClick={() => setAbierto(false)} className="anim-aparecer absolute inset-0 bg-navy/50 backdrop-blur-[2px]" />
-          <div id="menu-movil" className="panel-kora anim-entrar absolute inset-y-0 left-0 flex w-64 max-w-[85vw] flex-col overflow-y-auto text-slate-300">
+          <div id="menu-movil" className="panel-kora anim-entrar scroll-oscuro absolute inset-y-0 left-0 flex w-64 max-w-[85vw] flex-col overflow-y-auto text-slate-300">
             {children}
           </div>
         </div>

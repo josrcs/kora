@@ -85,6 +85,29 @@ h2,
     linear-gradient(160deg, var(--color-navy) 0%, var(--color-navy-2) 100%);
 }
 
+/* Desplazamiento dentro de paneles oscuros: barra fina y translúcida, sin el riel gris del navegador. */
+.scroll-oscuro {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(255 255 255 / 0.18) transparent;
+  scrollbar-gutter: stable;
+}
+.scroll-oscuro::-webkit-scrollbar {
+  width: 6px;
+}
+.scroll-oscuro::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scroll-oscuro::-webkit-scrollbar-thumb {
+  background: rgb(255 255 255 / 0.18);
+  border-radius: 999px;
+}
+.scroll-oscuro::-webkit-scrollbar-thumb:hover {
+  background: rgb(255 255 255 / 0.32);
+}
+.scroll-oscuro::-webkit-scrollbar-button {
+  display: none;
+}
+
 /* Tarjetas que reaccionan al puntero. */
 .tarjeta-viva {
   transition:

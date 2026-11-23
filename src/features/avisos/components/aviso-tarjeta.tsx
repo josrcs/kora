@@ -41,6 +41,7 @@ export function AvisoTarjeta({ aviso, nuevo = false, pie, atenuado = false }: { 
         <p className="mt-1 text-[13px] leading-6 whitespace-pre-line text-ink-soft">{aviso.cuerpo}</p>
         <p className="mt-2 text-xs text-muted">
           {aviso.autor} · Coordinación · {AUDIENCIA_AVISO[aviso.audiencia]}
+          {aviso.alcance !== "Todo el colegio" && <span className="ml-1.5 rounded-full bg-cielo-soft px-2 py-0.5 font-semibold text-brand">{aviso.alcance}</span>}
         </p>
         {pie}
       </div>

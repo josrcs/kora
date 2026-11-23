@@ -440,6 +440,9 @@ export const announcements = pgTable("announcements", {
   cuerpo: varchar("cuerpo", { length: 5000 }).notNull(),
   fijado: boolean("fijado").notNull().default(false),
   archivadoAt: timestamp("archivado_at", { withTimezone: true }),
+  /** 0009: alcance opcional. Ambos null = todo el colegio. */
+  gradeLevelId: uuid("grade_level_id"),
+  groupId: uuid("group_id"),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 });

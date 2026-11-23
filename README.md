@@ -84,7 +84,7 @@ La mayoría de usuarios son menores de edad, así que Kora no deja usar una cuen
   registran coordinación o el director de grupo (la base lo exige y rechaza periodos cerrados). El estudiante y su
   acudiente la ven en la pestaña **Convivencia** del portal y en el boletín (pantalla y PDF) cuando se cierra el periodo.
 - **Avisos y comunicados** (`/coordinacion/avisos`): coordinación publica avisos, comunicados o urgentes para todos,
-  solo estudiantes o solo acudientes; puede fijarlos o archivarlos y ve el **acuse de lectura** (leídos / destinatarios).
+  solo estudiantes o solo acudientes, de todo el colegio, de un **grado** o de un **curso**; puede fijarlos o archivarlos y ve el **acuse de lectura** (leídos / destinatarios).
   En el portal aparecen en **Avisos del colegio** y como franja de avisos sin leer.
 - **Asistencia diaria** (`/docente/asistencia`): el docente (o coordinación) pasa lista en cada clase con la duración en
   horas y el tema: presente, ausente, tarde o excusa. La base recalcula las fallas de la planilla (ausente y excusa suman;
@@ -144,7 +144,8 @@ kora/
 │       ├── 0005_rector_convivencia.sql  rol Rector, procesos disciplinarios, autoría de notas
 │       ├── 0006_actividades_recuperacion_corte.sql  actividades, recuperación con tope, corte preventivo
 │       ├── 0007_convivencia_avisos_datos.sql  nota de convivencia, avisos con acuse de lectura, autorizaciones de datos
-│       └── 0008_asistencia_diaria.sql  lista por clase; la base recalcula las fallas de la planilla
+│       ├── 0008_asistencia_diaria.sql  lista por clase; la base recalcula las fallas de la planilla
+│       └── 0009_avisos_por_grado_curso.sql  avisos dirigidos a un grado o a un curso
 ├── scripts/
 │   ├── migrate.ts                   aplica migraciones en orden (tabla schema_migrations)
 │   └── seed.ts                      colegio de prueba con el SIEE real de la IED Jorge Isaacs

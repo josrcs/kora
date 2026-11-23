@@ -4,6 +4,7 @@ import { refresh } from "next/cache";
 import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { withTenant } from "@/db/client";
+import { errorPostgres } from "@/db/errors";
 import { announcements } from "@/db/schema";
 import { ROLES_COORDINACION, sessionParaAccion } from "@/lib/auth/session";
 
@@ -15,6 +16,9 @@ const avisoSchema = z.object({
   tipo: z.enum(["AVISO", "COMUNICADO", "URGENTE"]),
   audiencia: z.enum(["TODOS", "ESTUDIANTES", "ACUDIENTES"]),
   fijado: z.literal("on").optional(),
+  /* 0009: alcance opcional (vacío = todo el colegio). */
+  gradeLevelId: z.union([z.literal(""), z.uuid()]).optional(),
+  groupId: z.union([z.literal(""), z.uuid()]).optional(),
 });
 
 /** Publica un aviso o comunicado para estudiantes y/o acudientes (solo coordinación). */
@@ -24,19 +28,29 @@ export async function publicarAviso(_prev: EstadoAviso, formData: FormData): Pro
   const parsed = avisoSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message };
   const d = parsed.data;
-  await withTenant(session, (tx) =>
-    tx.insert(announcements).values({
-      institutionId: session.institutionId,
-      autorId: session.userId,
-      titulo: d.titulo,
-      cuerpo: d.cuerpo,
-      tipo: d.tipo,
-      audiencia: d.audiencia,
-      fijado: d.fijado === "on",
-    }),
-  );
+  try {
+    await withTenant(session, (tx) =>
+      tx.insert(announcements).values({
+        institutionId: session.institutionId,
+        autorId: session.userId,
+        titulo: d.titulo,
+        cuerpo: d.cuerpo,
+        tipo: d.tipo,
+        audiencia: d.audiencia,
+        fijado: d.fijado === "on",
+        gradeLevelId: d.gradeLevelId || null,
+        groupId: d.groupId || null,
+      }),
+    );
+  } catch (err) {
+    const pg = errorPostgres(err);
+    if (pg?.code === "23514" || pg?.code === "23503") return { ok: false, error: pg.code === "23503" ? "El grado o curso elegido no existe." : pg.message };
+    console.error("[avisos] publicar", err);
+    return { ok: false, error: "No se pudo publicar. Intente de nuevo." };
+  }
   refresh();
-  return { ok: true, error: null, mensaje: "Publicado. Ya lo ven los destinatarios en su portal." };
+  const destino = d.groupId ? "al curso elegido" : d.gradeLevelId ? "al grado elegido" : "a todo el colegio";
+  return { ok: true, error: null, mensaje: `Publicado ${destino}. Ya lo ven los destinatarios en su portal.` };
 }
 
 const idSchema = z.uuid();

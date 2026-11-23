@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { requireSession, ROLES_COORDINACION } from "@/lib/auth/session";
-import { avisosDeCoordinacion } from "@/features/avisos/server";
+import { avisosDeCoordinacion, opcionesAlcance } from "@/features/avisos/server";
 import { AvisoTarjeta } from "@/features/avisos/components/aviso-tarjeta";
 import { AccionesAviso, FormAviso } from "@/features/avisos/components/form-aviso";
 import { Cargando } from "@/features/periodos/components/estados";
@@ -12,7 +12,9 @@ export default function AvisosCoordinacionPage() {
   return (
     <div className="grid max-w-6xl gap-5 px-4 py-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:px-6">
       <div className="space-y-3 lg:sticky lg:top-20 lg:self-start">
-        <FormAviso />
+        <Suspense fallback={<div className="h-[34rem] rounded-2xl border border-line bg-surface" />}>
+          <Formulario />
+        </Suspense>
         <p className="px-1 text-xs leading-5 text-muted">
           Los avisos aparecen en el portal de cada estudiante y acudiente. Los urgentes y fijados se muestran también al abrir el boletín.
           No incluya datos personales ni de convivencia de un estudiante en un aviso general.
@@ -23,6 +25,11 @@ export default function AvisosCoordinacionPage() {
       </Suspense>
     </div>
   );
+}
+
+async function Formulario() {
+  const session = await requireSession(ROLES_COORDINACION);
+  return <FormAviso grados={await opcionesAlcance(session)} />;
 }
 
 async function Lista() {

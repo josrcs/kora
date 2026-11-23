@@ -137,10 +137,10 @@ export default function AppLayout({ children }: { children: ReactNode }) {
 
 function Secciones({ secciones }: { secciones: Seccion[] }) {
   return (
-    <nav className="relative flex-1 space-y-5 overflow-y-auto px-2.5 py-4" aria-label="Principal">
+    <nav className="scroll-oscuro relative min-h-0 flex-1 space-y-5 overflow-y-auto px-2.5 pt-5 pb-4" aria-label="Principal">
       {secciones.map((s) => (
         <div key={s.seccion}>
-          <p className="px-2.5 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-blue-200/45">{s.seccion}</p>
+          <p className="px-2.5 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-blue-200/60">{s.seccion}</p>
           {s.items.map((i) => (
             <NavLink key={i.href} href={i.href} icon={i.icono} exacta={i.exacta}>
               {i.texto}
