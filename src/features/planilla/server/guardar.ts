@@ -2,7 +2,7 @@ import "server-only";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { withTenant, type Tx } from "@/db/client";
 import { errorPostgres } from "@/db/errors";
-import { activityScores, enrollments, grades, institutions } from "@/db/schema";
+import { activityScores, attendanceSessions, enrollments, grades, institutions } from "@/db/schema";
 import type { Session } from "@/lib/auth/session";
 import { calcularDefinitiva, errorNota, reprueba, type Escala } from "@/lib/grading/calc";
 import { leerEscala } from "@/lib/grading/escala.server";
@@ -91,11 +91,16 @@ export async function guardarPlanilla(session: Session, input: GuardarInput): Pr
       }
 
       /* 2. Definitiva, fallas y observación */
+      // Con asistencia diaria registrada, las fallas las calcula la base: se ignoran las digitadas.
+      const [{ clases }] = await tx
+        .select({ clases: sql<number>`count(*)::int` })
+        .from(attendanceSessions)
+        .where(and(eq(attendanceSessions.teacherAssignmentId, ctx.assignment.id), eq(attendanceSessions.periodId, ctx.period.id)));
       const directos = new Map<string, { nota?: number | null; fallas?: number; observacion?: string | null }>();
       for (const c of cambios) {
         const d = directos.get(c.enrollmentId) ?? {};
         if (c.campo === "nota") d.nota = c.valor;
-        if (c.campo === "fallas") d.fallas = c.valor;
+        if (c.campo === "fallas" && clases === 0) d.fallas = c.valor;
         if (c.campo === "observacion") d.observacion = c.valor.trim() || null;
         directos.set(c.enrollmentId, d);
       }

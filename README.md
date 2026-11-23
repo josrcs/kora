@@ -86,6 +86,11 @@ La mayoría de usuarios son menores de edad, así que Kora no deja usar una cuen
 - **Avisos y comunicados** (`/coordinacion/avisos`): coordinación publica avisos, comunicados o urgentes para todos,
   solo estudiantes o solo acudientes; puede fijarlos o archivarlos y ve el **acuse de lectura** (leídos / destinatarios).
   En el portal aparecen en **Avisos del colegio** y como franja de avisos sin leer.
+- **Asistencia diaria** (`/docente/asistencia`): el docente (o coordinación) pasa lista en cada clase con la duración en
+  horas y el tema: presente, ausente, tarde o excusa. La base recalcula las fallas de la planilla (ausente y excusa suman;
+  la excusa cuenta como falla justificada; tarde no suma) y desde ese momento esa columna no se digita a mano. El
+  estudiante y el acudiente ven el **registro diario** en la pestaña Asistencia del portal. No se puede pasar lista en
+  fechas futuras, fuera del periodo o en un periodo cerrado.
 - **Panel del acudiente** (`/portal/resumen`, su página de inicio): una tarjeta por hijo con el promedio del último
   periodo publicado y su tendencia, asignaturas en bajo, nota de convivencia, fallas del año y anotaciones del
   observador por firmar; al lado, los avisos sin leer.
@@ -138,7 +143,8 @@ kora/
 │       ├── 0004_traslado_grupo.sql  cambio de grupo a mitad de año llevando las notas (fn_trasladar_matricula)
 │       ├── 0005_rector_convivencia.sql  rol Rector, procesos disciplinarios, autoría de notas
 │       ├── 0006_actividades_recuperacion_corte.sql  actividades, recuperación con tope, corte preventivo
-│       └── 0007_convivencia_avisos_datos.sql  nota de convivencia, avisos con acuse de lectura, autorizaciones de datos
+│       ├── 0007_convivencia_avisos_datos.sql  nota de convivencia, avisos con acuse de lectura, autorizaciones de datos
+│       └── 0008_asistencia_diaria.sql  lista por clase; la base recalcula las fallas de la planilla
 ├── scripts/
 │   ├── migrate.ts                   aplica migraciones en orden (tabla schema_migrations)
 │   └── seed.ts                      colegio de prueba con el SIEE real de la IED Jorge Isaacs

@@ -72,6 +72,8 @@ export type PlanillaData = {
   /** Por qué no se puede editar (periodo cerrado, solo lectura por rol…). */
   motivoBloqueo: string | null;
   corte: { realizadoAt: string } | null;
+  /** 0008: hay asistencia diaria registrada; las fallas se calculan desde ella y no se digitan. */
+  fallasDesdeAsistencia: boolean;
 };
 
 /* ------------------------------------------------------------------ */

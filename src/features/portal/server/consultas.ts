@@ -6,6 +6,8 @@ import { withTenant, type Tx } from "@/db/client";
 import {
   academicYears,
   achievements,
+  attendanceRecords,
+  attendanceSessions,
   convivenciaGrades,
   areas,
   enrollments,
@@ -364,5 +366,28 @@ export async function getConvivenciaPortal(session: Session, studentId: string) 
   return withTenant(session, async (tx) => {
     if (!(await puedeVerEstudiante(tx, session, studentId))) return null;
     return notasConvivenciaDe(tx, session.institutionId, studentId);
+  });
+}
+
+/** Días con ausencia, tardanza o excusa del estudiante en el año activo (asistencia diaria). */
+export async function getRegistroAsistencia(session: Session, studentId: string) {
+  return withTenant(session, async (tx) => {
+    const ctx = await contextoEstudiante(tx, session, studentId);
+    if (!ctx) return null;
+    return tx
+      .select({
+        fecha: attendanceSessions.fecha,
+        horas: attendanceSessions.horas,
+        asignatura: subjects.nombre,
+        estado: attendanceRecords.estado,
+        observacion: attendanceRecords.observacion,
+      })
+      .from(attendanceRecords)
+      .innerJoin(attendanceSessions, eq(attendanceSessions.id, attendanceRecords.sessionId))
+      .innerJoin(teacherAssignments, eq(teacherAssignments.id, attendanceSessions.teacherAssignmentId))
+      .innerJoin(subjects, eq(subjects.id, teacherAssignments.subjectId))
+      .where(and(eq(attendanceRecords.enrollmentId, ctx.enrollmentId), inArray(attendanceRecords.estado, ["AUSENTE", "TARDE", "EXCUSA"])))
+      .orderBy(desc(attendanceSessions.fecha), asc(subjects.nombre))
+      .limit(150);
   });
 }

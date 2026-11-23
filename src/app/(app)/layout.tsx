@@ -75,7 +75,10 @@ const MENU: Seccion[] = [
   {
     seccion: "Calificaciones",
     roles: ["TEACHER", "COORDINATOR"],
-    items: [{ href: "/docente/planilla", texto: "Planilla de notas", icono: <IconTable /> }],
+    items: [
+      { href: "/docente/planilla", texto: "Planilla de notas", icono: <IconTable /> },
+      { href: "/docente/asistencia", texto: "Asistencia diaria", icono: <IconChecklist /> },
+    ],
   },
   {
     seccion: "Estudiante",

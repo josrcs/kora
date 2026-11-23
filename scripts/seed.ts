@@ -526,6 +526,37 @@ async function sembrarColegio(c: Colegio, q: Q, hashGeneral: string, hashDemo: R
     console.log(`  · ${n} recuperaciones registradas de ${perdidas.length} asignaturas perdidas en ${c.periodos[enCurso - 1].nombre}`);
   }
 
+  /* ---------- asistencia diaria: el docente demo de matemáticas pasó lista los últimos días hábiles ---------- */
+  // Con triggers activos: cada registro recalcula las fallas de la planilla de ese periodo.
+  {
+    const p = c.periodos[enCurso];
+    const fechas: string[] = [];
+    for (let d = new Date(`${HOY < p.fin ? HOY : p.fin}T12:00:00`); fechas.length < 8 && d.toISOString().slice(0, 10) >= p.ini; d.setDate(d.getDate() - 1)) {
+      if (d.getDay() !== 0 && d.getDay() !== 6) fechas.push(d.toISOString().slice(0, 10));
+    }
+    const idMat = idDocente.get(docenteMat.documento)!;
+    let clases = 0;
+    for (const a of asignaciones.filter((x) => x.docente === docenteMat.documento)) {
+      for (const fecha of fechas) {
+        const [ses] = await q<{ id: string }>(
+          `INSERT INTO attendance_sessions (institution_id, teacher_assignment_id, period_id, fecha, horas, registrado_por)
+           VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+          [inst, a.id, periodoId[enCurso], fecha, rand() < 0.5 ? 2 : 1, idMat],
+        );
+        await q(
+          `INSERT INTO attendance_records (institution_id, session_id, enrollment_id, estado)
+           SELECT $1, $2, e.id,
+                  (CASE WHEN x.r < 0.05 THEN 'AUSENTE' WHEN x.r < 0.08 THEN 'TARDE' WHEN x.r < 0.09 THEN 'EXCUSA' ELSE 'PRESENTE' END)::estado_asistencia
+             FROM enrollments e CROSS JOIN LATERAL (SELECT random() AS r WHERE e.id IS NOT NULL) x
+            WHERE e.group_id = $3 AND e.estado = 'ACTIVA'`,
+          [inst, ses.id, a.groupId],
+        );
+        clases++;
+      }
+    }
+    console.log(`  · ${clases} clases con asistencia registrada (docente demo de matemáticas)`);
+  }
+
   /* ---------- observador ---------- */
   const g9 = grupoId.get(demo("STUDENT")[0]?.grupo ?? "9-A")!;
   const [m1, m2, m3] = matriculasPorGrupo.get(g9)!;

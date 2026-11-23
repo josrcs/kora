@@ -2,6 +2,7 @@ import "server-only";
 import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import { withTenant, type Tx } from "@/db/client";
 import {
+  attendanceSessions,
   academicYears,
   achievements,
   activities,
@@ -232,6 +233,11 @@ export async function getPlanilla(session: Session, asignacion: OpcionAsignacion
       if (fila) fila.corte = c.nota;
     }
 
+    const [{ clases }] = await tx
+      .select({ clases: sql<number>`count(*)::int` })
+      .from(attendanceSessions)
+      .where(and(eq(attendanceSessions.teacherAssignmentId, asignacion.id), eq(attendanceSessions.periodId, ctx.period.id)));
+
     const ventana = ctx.period.cerrado && (await ventanaRecuperacion(tx, ctx.period.id));
     const modo: ModoPlanilla = !ctx.period.cerrado ? "edicion" : ventana ? "recuperacion" : "lectura";
     const motivoBloqueo =
@@ -250,6 +256,7 @@ export async function getPlanilla(session: Session, asignacion: OpcionAsignacion
       modo,
       motivoBloqueo,
       corte: corte ? { realizadoAt: corte.realizadoAt.toISOString() } : null,
+      fallasDesdeAsistencia: clases > 0,
     };
   });
 }

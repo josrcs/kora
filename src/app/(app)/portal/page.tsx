@@ -5,7 +5,8 @@ import { withTenant } from "@/db/client";
 import { requireSession } from "@/lib/auth/session";
 import { IconLock } from "@/components/icons";
 import { estudiantesDelPortal } from "@/features/portal/server/acceso";
-import { getAsistencia, getBoletin, getConvivenciaPortal, getInformePreventivo, getObservador } from "@/features/portal/server/consultas";
+import { getAsistencia, getBoletin, getConvivenciaPortal, getInformePreventivo, getObservador, getRegistroAsistencia } from "@/features/portal/server/consultas";
+import { RegistroAsistencia } from "@/features/portal/components/registro-asistencia";
 import { ConvivenciaPortal } from "@/features/portal/components/convivencia-portal";
 import { AvisosDestacados } from "@/features/avisos/components/avisos-destacados";
 import { DesempenoBadge } from "@/components/desempeno-badge";
@@ -230,8 +231,14 @@ async function VistaConvivencia({ session, estudianteId }: { session: Session; e
 }
 
 async function VistaAsistencia({ session, estudianteId }: { session: Session; estudianteId: string }) {
-  const data = await getAsistencia(session, estudianteId);
-  return data ? <AsistenciaTabla data={data} /> : <p className="text-muted">No tiene acceso a la información de este estudiante.</p>;
+  const [data, registro] = await Promise.all([getAsistencia(session, estudianteId), getRegistroAsistencia(session, estudianteId)]);
+  if (!data) return <p className="text-muted">No tiene acceso a la información de este estudiante.</p>;
+  return (
+    <div className="space-y-6">
+      <AsistenciaTabla data={data} />
+      {registro && <RegistroAsistencia filas={registro} />}
+    </div>
+  );
 }
 
 async function VistaObservador({ session, estudianteId }: { session: Session; estudianteId: string }) {

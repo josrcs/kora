@@ -471,3 +471,40 @@ export const dataConsents = pgTable("data_consents", {
   userAgent: varchar("user_agent", { length: 300 }),
   createdAt: createdAt(),
 });
+
+/* ------------------------------------------------------------------ */
+/*  0008 · Asistencia diaria                                           */
+/* ------------------------------------------------------------------ */
+export const estadoAsistencia = pgEnum("estado_asistencia", ["PRESENTE", "AUSENTE", "TARDE", "EXCUSA"]);
+export type EstadoAsistencia = (typeof estadoAsistencia.enumValues)[number];
+
+/** Una clase dictada: asignación + fecha (la base recalcula grades.fallas con cada cambio). */
+export const attendanceSessions = pgTable(
+  "attendance_sessions",
+  {
+    id: id(),
+    institutionId: tenant(),
+    teacherAssignmentId: uuid("teacher_assignment_id").notNull(),
+    periodId: uuid("period_id").notNull(),
+    fecha: date("fecha").notNull(),
+    horas: smallint("horas").notNull().default(1),
+    tema: varchar("tema", { length: 200 }),
+    registradoPor: uuid("registrado_por").notNull(),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [unique("attendance_sessions_dia_uq").on(t.teacherAssignmentId, t.fecha)],
+);
+
+export const attendanceRecords = pgTable(
+  "attendance_records",
+  {
+    institutionId: tenant(),
+    sessionId: uuid("session_id").notNull(),
+    enrollmentId: uuid("enrollment_id").notNull(),
+    estado: estadoAsistencia("estado").notNull().default("PRESENTE"),
+    observacion: varchar("observacion", { length: 300 }),
+    updatedAt: updatedAt(),
+  },
+  (t) => [primaryKey({ columns: [t.sessionId, t.enrollmentId] })],
+);

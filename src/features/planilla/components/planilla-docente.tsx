@@ -95,6 +95,7 @@ export function PlanillaDocente({ data, asignaciones, periodos, esCoordinacion }
 
   const [bloqueo, setBloqueo] = useState<string | null>(data.motivoBloqueo);
   const editable = data.modo !== "lectura" && bloqueo === null;
+  const fallasBloqueadas = data.fallasDesdeAsistencia;
 
   // En recuperación solo aparecen quienes perdieron el periodo.
   const filas = useMemo(
@@ -158,6 +159,7 @@ export function PlanillaDocente({ data, asignaciones, periodos, esCoordinacion }
 
   const aplicar = useCallback(
     (enrollmentId: string, col: Columna, raw: string, normalizar: boolean): boolean => {
+      if (col.tipo === "fallas" && fallasBloqueadas) return true; // vienen de la asistencia diaria
       const res = parsear(col, raw, escala, topeRecuperacion);
       if (!res.ok) {
         setTextos((m) => conValor(m, enrollmentId, col.key, raw));
@@ -173,7 +175,7 @@ export function PlanillaDocente({ data, asignaciones, periodos, esCoordinacion }
       encolar(`${enrollmentId}:${col.key}`, aCambio(enrollmentId, col, res.value));
       return true;
     },
-    [escala, encolar, topeRecuperacion],
+    [escala, encolar, topeRecuperacion, fallasBloqueadas],
   );
 
   /** Observación del boletín (desde el diálogo del observador). */
@@ -420,8 +422,12 @@ export function PlanillaDocente({ data, asignaciones, periodos, esCoordinacion }
                     </Th>
                   ))}
                   {modoDirecto && <Th className="w-24 text-center">Def. {`P${periodo.numero}`}</Th>}
-                  <Th className="w-20 text-center" title="Horas de inasistencia en el periodo">
+                  <Th
+                    className="w-20 text-center"
+                    title={fallasBloqueadas ? "Calculadas desde la asistencia diaria (Asistencia en el menú)" : "Horas de inasistencia en el periodo"}
+                  >
                     Fallas
+                    {fallasBloqueadas && <span className="block text-[9px] font-semibold tracking-normal text-brand normal-case">de asistencia</span>}
                   </Th>
                   {!modoDirecto && <Th className="w-20 text-center">Def. {`P${periodo.numero}`}</Th>}
                 </>
@@ -446,6 +452,7 @@ export function PlanillaDocente({ data, asignaciones, periodos, esCoordinacion }
                 recuperando={recuperando}
                 numeroPeriodo={periodo.numero}
                 hayCorte={data.corte !== null}
+                fallasBloqueadas={fallasBloqueadas}
                 onObservacion={guardarObservacion}
                 puedeAbrirProceso={esCoordinacion}
               />
@@ -786,11 +793,12 @@ type FilaProps = {
   recuperando: boolean;
   numeroPeriodo: number;
   hayCorte: boolean;
+  fallasBloqueadas: boolean;
   onObservacion: (enrollmentId: string, texto: string) => void;
   puedeAbrirProceso: boolean;
 };
 
-const FilaGrid = memo(function FilaGrid({ r, fila, valores, textos, errores, columnas, actividades, escala, editable, recuperando, hayCorte, onObservacion, puedeAbrirProceso }: FilaProps) {
+const FilaGrid = memo(function FilaGrid({ r, fila, valores, textos, errores, columnas, actividades, escala, editable, recuperando, hayCorte, fallasBloqueadas, onObservacion, puedeAbrirProceso }: FilaProps) {
   const modoDirecto = actividades.length === 0;
   const calculo = calcularDefinitiva(actividades, valores.notas, escala.decimales);
   const nota = recuperando ? fila.nota : modoDirecto ? valores.nota : calculo.nota;
@@ -815,7 +823,7 @@ const FilaGrid = memo(function FilaGrid({ r, fila, valores, textos, errores, col
         data-r={r}
         data-c={c}
         value={texto}
-        readOnly={!editable}
+        readOnly={!editable || (col.tipo === "fallas" && fallasBloqueadas)}
         onChange={noop}
         inputMode={esFallas ? "numeric" : "decimal"}
         autoComplete="off"
