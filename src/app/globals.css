@@ -1,0 +1,71 @@
+@import "tailwindcss";
+
+/*
+ * Paleta institucional: sobria, densa, legible a pleno sol en un salón.
+ * Sin degradados, sin sombras difusas. Bordes de 1px y radios mínimos.
+ */
+@theme {
+  --font-sans: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, "Cascadia Mono", monospace;
+
+  --color-canvas: #f8fafc;
+  --color-surface: #ffffff;
+  --color-line: #e2e8f0;
+  --color-line-strong: #cbd5e1;
+  --color-ink: #0f172a;
+  --color-ink-soft: #334155;
+  --color-muted: #64748b;
+
+  --color-navy: #0f172a;
+  --color-brand: #1e3a8a;
+  --color-brand-hover: #1e40af;
+  --color-brand-soft: #eef2fb;
+
+  --color-ok: #047857;
+  --color-ok-soft: #ecfdf5;
+  --color-ok-line: #a7f3d0;
+  --color-warn: #b45309;
+  --color-warn-soft: #fffbeb;
+  --color-warn-line: #fde68a;
+  --color-bad: #b91c1c;
+  --color-bad-soft: #fef2f2;
+  --color-bad-line: #fecaca;
+
+  /* Pantalla de ingreso */
+  --color-petroleo: #124e5c;
+  --color-petroleo-hover: #0d3f4b;
+  --color-petroleo-soft: #e8f3f4;
+  --color-arena: #f6f4ef;
+  --color-sol: #f6b81a;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+/* Los inputs numéricos de la planilla: sin spinners, cifras alineadas. */
+.celda {
+  font-variant-numeric: tabular-nums;
+}
+.celda::-webkit-outer-spin-button,
+.celda::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .anim-spin {
+    animation: spin 0.9s linear infinite;
+  }
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
