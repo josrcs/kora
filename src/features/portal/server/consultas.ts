@@ -38,7 +38,7 @@ const JORNADA: Record<string, string> = {
 /* ------------------------------------------------------------------ */
 /*  Contexto: matrícula del año activo, grupo y periodos               */
 /* ------------------------------------------------------------------ */
-async function contextoEstudiante(tx: Tx, session: Session, studentId: string) {
+export async function contextoEstudiante(tx: Tx, session: Session, studentId: string) {
   if (!(await puedeVerEstudiante(tx, session, studentId))) return null;
 
   const estudiante = alias(users, "estudiante");

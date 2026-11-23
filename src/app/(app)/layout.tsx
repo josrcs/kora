@@ -81,6 +81,7 @@ const MENU: Seccion[] = [
     seccion: "Estudiante",
     roles: ["STUDENT", "GUARDIAN"],
     items: [
+      { href: "/portal/resumen", texto: "Resumen de mis hijos", icono: <IconChart />, roles: ["GUARDIAN"] },
       { href: "/portal", texto: "Portal académico", icono: <IconDocument />, exacta: true },
       { href: "/portal/avisos", texto: "Avisos del colegio", icono: <IconMegafono /> },
     ],

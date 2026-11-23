@@ -162,6 +162,8 @@ export function rutaInicio(rol: Rol): string {
       return "/admin/matriculas";
     case "TEACHER":
       return "/docente/planilla";
+    case "GUARDIAN":
+      return "/portal/resumen";
     default:
       return "/portal";
   }

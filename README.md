@@ -86,6 +86,9 @@ La mayoría de usuarios son menores de edad, así que Kora no deja usar una cuen
 - **Avisos y comunicados** (`/coordinacion/avisos`): coordinación publica avisos, comunicados o urgentes para todos,
   solo estudiantes o solo acudientes; puede fijarlos o archivarlos y ve el **acuse de lectura** (leídos / destinatarios).
   En el portal aparecen en **Avisos del colegio** y como franja de avisos sin leer.
+- **Panel del acudiente** (`/portal/resumen`, su página de inicio): una tarjeta por hijo con el promedio del último
+  periodo publicado y su tendencia, asignaturas en bajo, nota de convivencia, fallas del año y anotaciones del
+  observador por firmar; al lado, los avisos sin leer.
 - **Consolidado de notas** (`/coordinacion/notas`): sábana estudiantes × asignaturas de cualquier periodo, **también
   cerrado** (cerrar bloquea la edición, no la consulta). Cada periodo cerrado tiene el botón **Ver notas**.
 
