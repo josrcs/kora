@@ -3,9 +3,10 @@ import { cache } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { jwtVerify, SignJWT } from "jose";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { withTenant, type TenantContext } from "@/db/client";
 import { institutions, users, type Rol } from "@/db/schema";
+import { VERSION_POLITICA } from "@/features/privacidad/politica";
 
 /**
  * Sesión firmada (JWT HS256) en cookie httpOnly. Solo guarda identificadores
@@ -22,6 +23,8 @@ export type Session = TenantContext & {
   rol: Rol;
   nombre: string;
   debeCambiarPassword: boolean;
+  /** Aceptó la versión vigente de la política de tratamiento de datos (Ley 1581). Sin esto no puede usar la cuenta. */
+  politicaAceptada: boolean;
   institucion: { nombre: string; slug: string };
 };
 
@@ -88,6 +91,10 @@ export const getSession = cache(async (): Promise<Session | null> => {
         apellidos: users.apellidos,
         debeCambiarPassword: users.debeCambiarPassword,
         sesionVersion: users.sesionVersion,
+        politicaAceptada: sql<boolean>`coalesce((
+          select dc.aceptado from data_consents dc
+           where dc.user_id = ${users.id} and dc.tipo = 'ACEPTACION_USUARIO' and dc.version = ${VERSION_POLITICA}
+           order by dc.created_at desc limit 1), false)`,
         institucionNombre: institutions.nombre,
         slug: institutions.slug,
       })
@@ -109,6 +116,7 @@ export const getSession = cache(async (): Promise<Session | null> => {
     rol: row.rol,
     nombre: `${row.nombres} ${row.apellidos}`,
     debeCambiarPassword: row.debeCambiarPassword,
+    politicaAceptada: row.politicaAceptada,
     institucion: { nombre: row.institucionNombre, slug: row.slug },
   };
 });
@@ -165,20 +173,25 @@ export function rutaInicio(rol: Rol): string {
  */
 export async function sessionParaAccion(roles: readonly Rol[]): Promise<Session | null> {
   const session = await getSession();
-  if (!session || session.debeCambiarPassword || !roles.includes(session.rol)) return null;
+  if (!session || !session.politicaAceptada || session.debeCambiarPassword || !roles.includes(session.rol)) return null;
   return session;
 }
 
 /**
- * Para páginas: redirige al ingreso si no hay sesión, a cambiar la clave si
- * es obligatorio, o a "sin acceso" si el rol no aplica.
+ * Para páginas: redirige al ingreso si no hay sesión; a aceptar la política de
+ * datos si no la ha aceptado (va primero: sin autorización la cuenta no se
+ * activa); a cambiar la clave si es obligatorio; o a "sin acceso" si el rol no aplica.
  */
 export async function requireSession(
   roles?: readonly Rol[],
-  { permitirClavePendiente = false }: { permitirClavePendiente?: boolean } = {},
+  {
+    permitirClavePendiente = false,
+    permitirPoliticaPendiente = false,
+  }: { permitirClavePendiente?: boolean; permitirPoliticaPendiente?: boolean } = {},
 ): Promise<Session> {
   const session = await getSession();
   if (!session) redirect("/login");
+  if (!session.politicaAceptada && !permitirPoliticaPendiente) redirect("/autorizacion-datos");
   if (session.debeCambiarPassword && !permitirClavePendiente) redirect("/cambiar-clave");
   if (roles && !roles.includes(session.rol)) redirect("/sin-acceso");
   return session;

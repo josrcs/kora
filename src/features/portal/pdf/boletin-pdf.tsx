@@ -3,6 +3,11 @@ import { Document, Image, Page, StyleSheet, Text, View, renderToBuffer } from "@
 import { DESEMPENO_LABEL, formatNota, reprueba } from "@/lib/grading/calc";
 import { fechaHora, fechaLarga, TIPO_DOCUMENTO } from "../formato";
 import type { BoletinData, FilaBoletin } from "../types";
+import { readFileSync } from "node:fs";
+import path from "node:path";
+
+/** Logo de Kora para el pie del boletín (PNG: react-pdf no lee WebP). */
+const LOGO_KORA = { data: readFileSync(path.join(process.cwd(), "public", "kora-logo-pdf.png")), format: "png" as const };
 
 /**
  * Boletín oficial en PDF (tamaño carta). Usa Helvetica (fuente estándar del
@@ -112,7 +117,7 @@ function BoletinPdf({ data }: { data: BoletinData }) {
     <Document
       title={`Informe académico ${periodo.nombre} ${data.anio} — ${estudiante.nombre}`}
       author={membrete.nombre}
-      creator="Kora"
+      creator="Kora · Plataforma de Gestión Académica"
       language="es-CO"
     >
       <Page size="LETTER" style={s.page}>
@@ -218,6 +223,13 @@ function BoletinPdf({ data }: { data: BoletinData }) {
               <Text>Fallas del periodo (horas)</Text>
               <Text style={{ fontFamily: "Helvetica-Bold" }}>{resumen.fallas}</Text>
             </View>
+            <View style={s.resumenFila}>
+              <Text>Nota de convivencia</Text>
+              <Text style={{ fontFamily: "Helvetica-Bold", color: data.convivencia.desempeno === "BAJO" ? C.bad : C.ink }}>
+                {data.convivencia.nota === null ? "—" : `${formatNota(data.convivencia.nota, d)}${data.convivencia.desempeno ? ` (${DESEMPENO_LABEL[data.convivencia.desempeno]})` : ""}`}
+              </Text>
+            </View>
+            {data.convivencia.observacion ? <Text style={[s.pequeno, { marginTop: 2 }]}>Convivencia: {data.convivencia.observacion}</Text> : null}
           </View>
           <View style={s.caja}>
             <Text style={s.etiqueta}>Escala de valoración · Decreto 1290 de 2009</Text>
@@ -248,9 +260,13 @@ function BoletinPdf({ data }: { data: BoletinData }) {
         </View>
 
         <View style={s.pie} fixed>
-          <Text>
-            {membrete.nombre} · DANE {membrete.codigoDane} · Generado el {fechaHora(data.generadoEn)}
-          </Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+            {/* eslint-disable-next-line jsx-a11y/alt-text -- Image de react-pdf no admite alt */}
+            <Image src={LOGO_KORA} style={{ width: 46, height: 14, objectFit: "contain" }} />
+            <Text>
+              {membrete.nombre} · DANE {membrete.codigoDane} · Generado el {fechaHora(data.generadoEn)}
+            </Text>
+          </View>
           <Text render={({ pageNumber, totalPages }) => `Página ${pageNumber} de ${totalPages}`} />
         </View>
       </Page>

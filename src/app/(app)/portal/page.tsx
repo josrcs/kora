@@ -5,7 +5,9 @@ import { withTenant } from "@/db/client";
 import { requireSession } from "@/lib/auth/session";
 import { IconLock } from "@/components/icons";
 import { estudiantesDelPortal } from "@/features/portal/server/acceso";
-import { getAsistencia, getBoletin, getInformePreventivo, getObservador } from "@/features/portal/server/consultas";
+import { getAsistencia, getBoletin, getConvivenciaPortal, getInformePreventivo, getObservador } from "@/features/portal/server/consultas";
+import { ConvivenciaPortal } from "@/features/portal/components/convivencia-portal";
+import { AvisosDestacados } from "@/features/avisos/components/avisos-destacados";
 import { DesempenoBadge } from "@/components/desempeno-badge";
 import { fechaHora } from "@/features/portal/formato";
 import { BoletinDocumento } from "@/features/portal/components/boletin-documento";
@@ -17,6 +19,7 @@ export const metadata: Metadata = { title: "Portal académico" };
 const VISTAS = [
   { id: "boletin", texto: "Boletín" },
   { id: "preventivo", texto: "Informe preventivo" },
+  { id: "convivencia", texto: "Convivencia" },
   { id: "asistencia", texto: "Asistencia" },
   { id: "observador", texto: "Observador" },
 ] as const;
@@ -63,7 +66,7 @@ async function Portal({ searchParams }: Pick<PageProps<"/portal">, "searchParams
       <div className="border-b border-line bg-surface px-4 pt-4 lg:px-6">
         <p className="text-xs text-muted">Portal académico</p>
         <div className="flex flex-wrap items-baseline gap-x-3">
-          <h1 className="text-base font-semibold tracking-tight">{estudiante.nombre}</h1>
+          <h1 className="text-xl font-bold">{estudiante.nombre}</h1>
           {estudiante.grupo && <span className="text-muted">Grupo {estudiante.grupo}</span>}
         </div>
 
@@ -91,8 +94,8 @@ async function Portal({ searchParams }: Pick<PageProps<"/portal">, "searchParams
               key={v.id}
               href={href({ vista: v.id })}
               aria-current={v.id === vista ? "page" : undefined}
-              className={`-mb-px border-b-2 pb-2 ${
-                v.id === vista ? "border-brand font-medium text-ink" : "border-transparent text-muted hover:text-ink"
+              className={`-mb-px border-b-2 pb-2.5 transition-colors ${
+                v.id === vista ? "border-cielo font-semibold text-ink" : "border-transparent text-muted hover:border-line-strong hover:text-ink"
               }`}
             >
               {v.texto}
@@ -102,8 +105,10 @@ async function Portal({ searchParams }: Pick<PageProps<"/portal">, "searchParams
       </div>
 
       <div className="px-4 py-5 lg:px-6">
+        <AvisosDestacados session={session} />
         {vista === "boletin" && <VistaBoletin session={session} estudianteId={estudiante.id} periodoId={periodoId} href={href} />}
         {vista === "preventivo" && <VistaPreventivo session={session} estudianteId={estudiante.id} />}
+        {vista === "convivencia" && <VistaConvivencia session={session} estudianteId={estudiante.id} />}
         {vista === "asistencia" && <VistaAsistencia session={session} estudianteId={estudiante.id} />}
         {vista === "observador" && <VistaObservador session={session} estudianteId={estudiante.id} />}
       </div>
@@ -217,6 +222,11 @@ async function VistaPreventivo({ session, estudianteId }: { session: Session; es
       </table>
     </div>
   );
+}
+
+async function VistaConvivencia({ session, estudianteId }: { session: Session; estudianteId: string }) {
+  const r = await getConvivenciaPortal(session, estudianteId);
+  return r ? <ConvivenciaPortal filas={r.filas} escala={r.escala} /> : <p className="text-muted">No tiene acceso a la información de este estudiante.</p>;
 }
 
 async function VistaAsistencia({ session, estudianteId }: { session: Session; estudianteId: string }) {

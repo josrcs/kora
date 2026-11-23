@@ -1,3 +1,4 @@
+import type { DesempenoCodigo as Desempeno } from "@/lib/grading/calc";
 import type { DesempenoCodigo, Escala } from "@/lib/grading/calc";
 
 export type EstudianteOpcion = {
@@ -65,6 +66,8 @@ export type BoletinData = {
   escala: Escala;
   areas: { nombre: string; filas: FilaBoletin[] }[];
   resumen: { promedio: number | null; enBajo: number; fallas: number; sinNota: number };
+  /** Nota de convivencia del periodo (0007). */
+  convivencia: { nota: number | null; desempeno: Desempeno | null; observacion: string | null };
   generadoEn: string;
 };
 

@@ -1,3 +1,5 @@
+<p align="center"><img src="public/kora-logo.png" alt="Kora · Plataforma de Gestión Académica" width="420"></p>
+
 # Kora · Gestión académica multi-institución
 
 Plataforma web de calificaciones y gestión académica para colegios de Colombia (SIEE · Decreto 1290 de 2009).
@@ -62,6 +64,31 @@ La base lo garantiza además de la app (migraciones 0005 y 0006): solo el docent
 y actividades (`fn_assert_editor_asignacion`); un periodo cerrado no admite cambios salvo la recuperación en su ventana;
 solo coordinación abre o cierra procesos.
 
+## Datos personales (Ley 1581 de 2012)
+
+La mayoría de usuarios son menores de edad, así que Kora no deja usar una cuenta sin autorización:
+
+- **Al matricular**, la secretaría debe registrar quién es el representante legal que firmó la autorización de
+  tratamiento de datos del estudiante (art. 7 Ley 1581 de 2012, art. 12 Decreto 1377 de 2013). Sin esa casilla y esos
+  datos **no se crea la cuenta**.
+- **Al ingresar por primera vez**, cada usuario lee la política (`/politica-de-datos`, pública) y la acepta con casillas
+  sin marcar. Si elige **No acepto**, queda registrado, se cierra la sesión y la cuenta no se activa. Va antes del
+  cambio de clave: ninguna página ni acción funciona sin una aceptación vigente (`requireSession`/`sessionParaAccion`).
+- Desde **Privacidad** el usuario ve su historial y puede **revocar** la autorización.
+- La tabla `data_consents` es **inmutable** (un trigger rechaza modificarla): aceptar, rechazar o revocar agrega una fila
+  con versión de la política, fecha, IP y navegador. Cambiar `VERSION_POLITICA` obliga a todos a aceptar de nuevo.
+
+## Convivencia y comunicación
+
+- **Nota de convivencia** (`/convivencia/notas`): una nota por estudiante y periodo, en la escala del colegio. La
+  registran coordinación o el director de grupo (la base lo exige y rechaza periodos cerrados). El estudiante y su
+  acudiente la ven en la pestaña **Convivencia** del portal y en el boletín (pantalla y PDF) cuando se cierra el periodo.
+- **Avisos y comunicados** (`/coordinacion/avisos`): coordinación publica avisos, comunicados o urgentes para todos,
+  solo estudiantes o solo acudientes; puede fijarlos o archivarlos y ve el **acuse de lectura** (leídos / destinatarios).
+  En el portal aparecen en **Avisos del colegio** y como franja de avisos sin leer.
+- **Consolidado de notas** (`/coordinacion/notas`): sábana estudiantes × asignaturas de cualquier periodo, **también
+  cerrado** (cerrar bloquea la edición, no la consulta). Cada periodo cerrado tiene el botón **Ver notas**.
+
 ## Ciclo de un periodo
 
 1. **Actividades.** Cada docente crea en su planilla las actividades del periodo con nombre y porcentaje (Quiz temático
@@ -107,7 +134,8 @@ kora/
 │       ├── 0003_coordinacion.sql    historial de cierres/reaperturas, cierre de periodos en orden
 │       ├── 0004_traslado_grupo.sql  cambio de grupo a mitad de año llevando las notas (fn_trasladar_matricula)
 │       ├── 0005_rector_convivencia.sql  rol Rector, procesos disciplinarios, autoría de notas
-│       └── 0006_actividades_recuperacion_corte.sql  actividades, recuperación con tope, corte preventivo
+│       ├── 0006_actividades_recuperacion_corte.sql  actividades, recuperación con tope, corte preventivo
+│       └── 0007_convivencia_avisos_datos.sql  nota de convivencia, avisos con acuse de lectura, autorizaciones de datos
 ├── scripts/
 │   ├── migrate.ts                   aplica migraciones en orden (tabla schema_migrations)
 │   └── seed.ts                      colegio de prueba con el SIEE real de la IED Jorge Isaacs

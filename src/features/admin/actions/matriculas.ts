@@ -8,6 +8,7 @@ import { hashPassword } from "@/lib/auth/password";
 import { leerAnioActivo } from "@/features/periodos/server/queries";
 import { buscarPersona, type PersonaEncontrada } from "../server/matriculas";
 import { claveTemporal, ejecutar, parsear, Rechazo } from "../server/comun";
+import { registrarAutorizacionRepresentante } from "@/features/privacidad/server";
 import { buscarPersonaSchema, idSchema, matriculaSchema, retiroSchema, trasladoSchema, type EstadoForm } from "../types";
 
 const ROL_TEXTO: Record<string, string> = {
@@ -102,6 +103,15 @@ export async function matricular(_prev: EstadoForm, formData: FormData): Promise
         groupId: grupo.id,
         studentId: est.id,
         fechaMatricula: d.fechaMatricula,
+      });
+      // Evidencia de la autorización del representante legal (cada matrícula deja su registro).
+      await registrarAutorizacionRepresentante(tx, {
+        institutionId: session.institutionId,
+        estudianteId: est.id,
+        registradoPor: session.userId,
+        nombre: d.representanteNombre,
+        documento: d.representanteDocumento,
+        parentesco: d.representanteParentesco,
       });
 
       const secreto: { etiqueta: string; valor: string }[] = [];

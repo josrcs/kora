@@ -72,6 +72,12 @@ export function BoletinDocumento({ data }: { data: BoletinData }) {
           <dd className={`font-mono font-semibold tabular-nums ${resumen.enBajo ? "text-bad" : ""}`}>{resumen.enBajo}</dd>
           <dt className="text-muted">Fallas del periodo (horas)</dt>
           <dd className="font-mono font-semibold tabular-nums">{resumen.fallas}</dd>
+          <dt className="font-medium text-brand">Nota de convivencia</dt>
+          <dd className={`font-mono font-semibold tabular-nums ${data.convivencia.desempeno === "BAJO" ? "text-bad" : "text-brand"}`}>
+            {data.convivencia.nota === null ? "—" : formatNota(data.convivencia.nota, d)}
+            {data.convivencia.desempeno && <span className="ml-1.5 font-sans text-xs font-medium">({DESEMPENO_LABEL[data.convivencia.desempeno]})</span>}
+          </dd>
+          {data.convivencia.observacion && <dd className="col-span-2 text-xs text-ink-soft">Convivencia: {data.convivencia.observacion}</dd>}
           {resumen.sinNota > 0 && (
             <>
               <dt className="text-muted">Asignaturas sin calificación</dt>

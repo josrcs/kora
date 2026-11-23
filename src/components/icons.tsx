@@ -108,3 +108,30 @@ export const IconBook = (p: SVGProps<SVGSVGElement>) => (
     <path d="M8 3.75v10" />
   </svg>
 );
+
+export const IconMegafono = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M2.5 6.5v3h2l5 3v-9l-5 3h-2Z" />
+    <path d="M12 5.5a3.5 3.5 0 0 1 0 5M4.5 9.5l.8 3.5h1.7l-.6-3" />
+  </svg>
+);
+
+export const IconEscudo = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M8 1.5 13.5 3.5v4c0 3.2-2.3 5.8-5.5 7-3.2-1.2-5.5-3.8-5.5-7v-4L8 1.5Z" />
+    <path d="m5.8 8.2 1.6 1.6 3-3" />
+  </svg>
+);
+
+export const IconEstrella = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="m8 2 1.8 3.7 4 .6-2.9 2.8.7 4L8 11.2 4.4 13.1l.7-4L2.2 6.3l4-.6L8 2Z" />
+  </svg>
+);
+
+export const IconConsolidado = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <rect x="2" y="2.5" width="12" height="11" rx="1.5" />
+    <path d="M2 6h12M6 6v7.5M10 6v7.5M2 9.75h12" />
+  </svg>
+);

@@ -78,11 +78,20 @@ export function PeriodoTarjeta({
           </p>
         </div>
 
-        <div className="flex shrink-0 gap-2 sm:w-60 sm:justify-end">
+        <div className="flex shrink-0 flex-wrap gap-2 sm:w-72 sm:justify-end">
           {p.cerrado ? (
-            <Boton activo={panel === "reabrir"} onClick={() => setPanel(panel === "reabrir" ? null : "reabrir")}>
-              Reabrir…
-            </Boton>
+            <>
+              {/* Cerrar bloquea la edición, no la consulta: coordinación sigue viendo todas las notas. */}
+              <Link
+                href={`/coordinacion/notas?periodo=${p.id}`}
+                className="btn-kora flex h-8 items-center rounded-lg bg-gradient-to-r from-petroleo to-brand px-3 text-xs font-semibold text-white shadow-[0_6px_16px_-8px_rgb(26_79_208/0.8)]"
+              >
+                Ver notas
+              </Link>
+              <Boton activo={panel === "reabrir"} onClick={() => setPanel(panel === "reabrir" ? null : "reabrir")}>
+                Reabrir…
+              </Boton>
+            </>
           ) : (
             <>
               <Boton activo={panel === "fechas"} onClick={() => setPanel(panel === "fechas" ? null : "fechas")}>

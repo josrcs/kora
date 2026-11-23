@@ -108,6 +108,7 @@ export function MatricularForm({ grupo }: { grupo: GrupoOpcion }) {
   const [est, setEst] = useState(vacia("TI"));
   const [acu, setAcu] = useState(vacia("CC"));
   const [parentesco, setParentesco] = useState("");
+  const [rep, setRep] = useState({ nombre: "", documento: "", parentesco: "" });
   const [fecha, setFecha] = useState(hoyISO());
   const [previo, setPrevio] = useState(estado);
   const [formKey, setFormKey] = useState(0);
@@ -118,6 +119,7 @@ export function MatricularForm({ grupo }: { grupo: GrupoOpcion }) {
       setEst(vacia(est.tipoDocumento));
       setAcu(vacia("CC"));
       setParentesco("");
+      setRep({ nombre: "", documento: "", parentesco: "" });
       setFormKey((k) => k + 1);
     }
   }
@@ -157,6 +159,40 @@ export function MatricularForm({ grupo }: { grupo: GrupoOpcion }) {
                 <option key={p} value={p} />
               ))}
             </datalist>
+          </label>
+        </fieldset>
+        <fieldset className="space-y-3 rounded-xl border border-brand/25 bg-brand-soft/60 p-4">
+          <legend className="px-1 text-xs font-semibold tracking-wide text-brand uppercase">Autorización de datos personales (obligatoria)</legend>
+          <p className="text-xs leading-5 text-ink-soft">
+            El estudiante es menor de edad: su cuenta solo se crea con la autorización previa, expresa e informada de su representante legal
+            (art. 7 Ley 1581 de 2012 y art. 12 Decreto 1377 de 2013). Registre quién firmó la autorización.
+          </p>
+          <div className="grid gap-3 sm:grid-cols-[1fr_10rem_10rem_auto] sm:items-end">
+            <label className={etiqueta}>
+              Representante legal
+              <input name="representanteNombre" value={rep.nombre} onChange={(e) => setRep({ ...rep, nombre: e.target.value })} required maxLength={161} className={campo} />
+            </label>
+            <label className={etiqueta}>
+              Documento
+              <input name="representanteDocumento" value={rep.documento} onChange={(e) => setRep({ ...rep, documento: e.target.value })} required maxLength={20} className={campo} />
+            </label>
+            <label className={etiqueta}>
+              Parentesco
+              <input name="representanteParentesco" value={rep.parentesco} onChange={(e) => setRep({ ...rep, parentesco: e.target.value })} list="parentescos" required maxLength={40} className={campo} />
+            </label>
+            <button
+              type="button"
+              disabled={!acu.documento.trim()}
+              onClick={() => setRep({ nombre: `${acu.nombres} ${acu.apellidos}`.trim(), documento: acu.documento, parentesco })}
+              className="h-9 rounded-lg border border-line-strong bg-surface px-3 text-xs font-medium text-ink-soft hover:border-brand hover:text-brand disabled:opacity-40"
+            >
+              Usar datos del acudiente
+            </button>
+          </div>
+          <label className="flex items-start gap-2 text-[13px] leading-5 text-ink">
+            <input type="checkbox" name="autorizacionDatos" required className="mt-0.5 size-4 shrink-0 accent-brand" />
+            El representante legal leyó la Política de Tratamiento de Datos y firmó la autorización para el tratamiento de los datos del
+            estudiante. Sin esta autorización no se crea la cuenta.
           </label>
         </fieldset>
         <div className="flex flex-wrap items-end gap-3">

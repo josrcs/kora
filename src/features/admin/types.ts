@@ -145,6 +145,13 @@ export const matriculaSchema = z
       .string()
       .trim()
       .regex(/^[0-9 +()-]{0,20}$/, "Teléfono inválido."),
+    /* Autorización de tratamiento de datos del menor (art. 7 Ley 1581 de 2012; art. 12 Decreto 1377 de 2013). */
+    autorizacionDatos: z.literal("on", {
+      error: "Sin la autorización del representante legal no se puede crear la cuenta del estudiante (Ley 1581 de 2012).",
+    }),
+    representanteNombre: texto(5, 161, "Nombre del representante legal"),
+    representanteDocumento: documento,
+    representanteParentesco: texto(3, 40, "Parentesco del representante legal"),
   })
   .refine((d) => !d.acudienteDocumento || d.acudienteDocumento !== d.documento, {
     message: "El acudiente no puede tener el mismo documento del estudiante.",

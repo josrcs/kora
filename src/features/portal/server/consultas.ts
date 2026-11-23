@@ -1,3 +1,4 @@
+import { notasConvivenciaDe } from "@/features/convivencia/server/notas";
 import "server-only";
 import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
@@ -5,6 +6,7 @@ import { withTenant, type Tx } from "@/db/client";
 import {
   academicYears,
   achievements,
+  convivenciaGrades,
   areas,
   enrollments,
   gradeLevels,
@@ -167,6 +169,11 @@ export async function getBoletin(session: Session, studentId: string, periodId?:
       .where(and(eq(achievements.periodId, periodo.id), eq(achievements.gradeLevelId, ctx.gradeLevelId)))
       .orderBy(asc(achievements.orden), asc(achievements.codigo));
 
+    const [conv] = await tx
+      .select({ nota: convivenciaGrades.nota, observacion: convivenciaGrades.observacion })
+      .from(convivenciaGrades)
+      .where(and(eq(convivenciaGrades.enrollmentId, ctx.enrollmentId), eq(convivenciaGrades.periodId, periodo.id)));
+
     const pesos = hasta.map((p) => ({ id: p.id, porcentaje: p.porcentaje }));
     const porArea = new Map<string, FilaBoletin[]>();
     for (const a of carga) {
@@ -212,6 +219,7 @@ export async function getBoletin(session: Session, studentId: string, periodId?:
           fallas: filas.reduce((s, f) => s + f.fallas, 0),
           sinNota: filas.length - conNota.length,
         },
+        convivencia: { nota: conv?.nota ?? null, desempeno: desempenoDe(conv?.nota ?? null, escala), observacion: conv?.observacion ?? null },
         generadoEn: new Date().toISOString(),
       },
     };
@@ -348,5 +356,13 @@ export async function getInformePreventivo(session: Session, studentId: string):
         return { asignatura: a.asignatura, area: a.area, docente: `${a.docenteNombres} ${a.docenteApellidos}`, nota, desempeno: desempenoDe(nota, escala) };
       }),
     };
+  });
+}
+
+/** Nota de convivencia por periodo (solo periodos cerrados, como el boletín). */
+export async function getConvivenciaPortal(session: Session, studentId: string) {
+  return withTenant(session, async (tx) => {
+    if (!(await puedeVerEstudiante(tx, session, studentId))) return null;
+    return notasConvivenciaDe(tx, session.institutionId, studentId);
   });
 }

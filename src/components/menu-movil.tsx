@@ -26,7 +26,7 @@ export function MenuMovil({ children }: { children: ReactNode }) {
         onClick={() => setAbierto(true)}
         aria-expanded={abierto}
         aria-controls="menu-movil"
-        className="grid size-8 place-items-center rounded-sm border border-line-strong text-ink-soft hover:bg-slate-50"
+        className="btn-kora grid size-9 place-items-center rounded-lg border border-line-strong text-ink-soft hover:bg-brand-soft hover:text-brand"
       >
         <span className="sr-only">Abrir menú</span>
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" aria-hidden>
@@ -35,8 +35,8 @@ export function MenuMovil({ children }: { children: ReactNode }) {
       </button>
       {abierto && (
         <div className="fixed inset-0 z-40" role="dialog" aria-modal="true" aria-label="Menú">
-          <button type="button" aria-label="Cerrar menú" onClick={() => setAbierto(false)} className="absolute inset-0 bg-navy/40" />
-          <div id="menu-movil" className="absolute inset-y-0 left-0 flex w-64 max-w-[85vw] flex-col overflow-y-auto bg-navy text-slate-300">
+          <button type="button" aria-label="Cerrar menú" onClick={() => setAbierto(false)} className="anim-aparecer absolute inset-0 bg-navy/50 backdrop-blur-[2px]" />
+          <div id="menu-movil" className="panel-kora anim-entrar absolute inset-y-0 left-0 flex w-64 max-w-[85vw] flex-col overflow-y-auto text-slate-300">
             {children}
           </div>
         </div>

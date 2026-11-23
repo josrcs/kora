@@ -36,5 +36,7 @@ async function Pantalla({ searchParams }: Pick<PageProps<"/login">, "searchParam
     if (recordado) instituciones.unshift(recordado);
   }
 
-  return <Ingreso instituciones={instituciones} inicialSlug={slug} cuentasDemo={mostrarCuentasDemo() ? CUENTAS_DEMO : []} />;
+  const politica = uno(params.politica);
+  const aviso = politica === "rechazada" || politica === "revocada" ? politica : null;
+  return <Ingreso instituciones={instituciones} inicialSlug={slug} cuentasDemo={mostrarCuentasDemo() ? CUENTAS_DEMO : []} avisoPolitica={aviso} />;
 }

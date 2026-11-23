@@ -26,6 +26,7 @@ import bcrypt from "bcryptjs";
 import { Client } from "pg";
 import { calcularDefinitiva } from "../src/lib/grading/calc";
 import { CLAVES_DEMO, CUENTAS_DEMO, type CuentaDemo } from "../src/features/auth/demo";
+import { VERSION_POLITICA } from "../src/features/privacidad/politica";
 
 if (process.env.NODE_ENV === "production") throw new Error("El seed no corre en producción");
 
@@ -487,6 +488,18 @@ async function sembrarColegio(c: Colegio, q: Q, hashGeneral: string, hashDemo: R
     // Corte preventivo (con el periodo aún abierto) y cierre de los periodos terminados.
     await q(`SELECT fn_generar_corte_preventivo($1, $2)`, [periodoId[pi], coordinador]);
     if (!enCursoAhora) {
+      // Nota de convivencia del periodo (coordinación), antes de cerrarlo: la base rechaza cambios en periodos cerrados.
+      await q(
+        `INSERT INTO convivencia_grades (institution_id, enrollment_id, period_id, nota, observacion, updated_by)
+         SELECT $1, e.id, $2, n.nota,
+                CASE WHEN n.nota < 3.0 THEN 'Debe mejorar el respeto por las normas del Manual de Convivencia.'
+                     WHEN n.nota >= 4.6 THEN 'Excelente actitud, respeto y liderazgo positivo con sus compañeros.' END,
+                $3
+           FROM enrollments e
+           CROSS JOIN LATERAL (SELECT round((2.8 + random() * 2.2)::numeric, 1) AS nota WHERE e.id IS NOT NULL) n
+          WHERE e.institution_id = $1 AND e.estado = 'ACTIVA'`,
+        [inst, periodoId[pi], coordinador],
+      );
       const cierre = `${c.periodos[pi].limite} 18:00-05`;
       await q(`UPDATE periods SET cerrado = true, cerrado_at = $1, cerrado_por = $2 WHERE id = $3`, [cierre, coordinador, periodoId[pi]]);
       await q(`INSERT INTO period_events (institution_id, period_id, accion, actor_id, created_at) VALUES ($1, $2, 'CIERRE', $3, $4)`, [inst, periodoId[pi], coordinador, cierre]);
@@ -529,6 +542,32 @@ async function sembrarColegio(c: Colegio, q: Q, hashGeneral: string, hashDemo: R
     `INSERT INTO student_observer (institution_id, student_id, enrollment_id, autor_id, fecha, tipo, situacion, descripcion, accion_pedagogica, proceso)
      VALUES ($1, $2, $3, $4, $5, 'DISCIPLINARIA', 'TIPO_II', 'Agresión verbal reiterada a un compañero durante el descanso, con testigos.', 'Citación al acudiente y remisión al comité de convivencia.', 'ABIERTO')`,
     [inst, m3.studentId, m3.id, coordinador, pIni],
+  );
+
+  /* ---------- autorización de datos del representante legal (registrada al matricular) ---------- */
+  // La aceptación de cada usuario NO se siembra: todos ven la pantalla de autorización en su primer ingreso.
+  await q(
+    `INSERT INTO data_consents (institution_id, user_id, tipo, version, aceptado, representante_nombre, representante_documento, representante_parentesco, registrado_por)
+     SELECT $1, u.id, 'AUTORIZACION_REPRESENTANTE', $2, true,
+            coalesce(g.nombres || ' ' || g.apellidos, 'Representante legal'), coalesce(g.documento_identidad, '00000000'),
+            coalesce(sg.parentesco, 'Acudiente'), $3
+       FROM users u
+       LEFT JOIN student_guardians sg ON sg.student_id = u.id AND sg.es_principal
+       LEFT JOIN users g ON g.id = sg.guardian_id
+      WHERE u.institution_id = $1 AND u.rol = 'STUDENT'`,
+    [inst, VERSION_POLITICA, admin],
+  );
+
+  /* ---------- avisos de coordinación ---------- */
+  await q(
+    `INSERT INTO announcements (institution_id, autor_id, tipo, audiencia, titulo, cuerpo, fijado, created_at)
+     VALUES ($1, $2, 'COMUNICADO', 'TODOS', 'Entrega de boletines del tercer periodo',
+             'Les informamos que los boletines del tercer periodo ya están publicados en Kora. La reunión de padres será el viernes a las 7:00 a. m. en el auditorio. La asistencia del acudiente es obligatoria.', true, now() - interval '3 days'),
+            ($1, $2, 'AVISO', 'ESTUDIANTES', 'Semana cultural y deportiva',
+             'Del 1 al 5 de diciembre se realizará la semana cultural. Inscríbanse con su director de grupo en las actividades deportivas y artísticas.', false, now() - interval '1 day'),
+            ($1, $2, 'URGENTE', 'ACUDIENTES', 'Jornada pedagógica: no hay clases el lunes',
+             'El próximo lunes los estudiantes no asistirán por jornada pedagógica institucional. Las clases se reanudan el martes en horario habitual.', false, now() - interval '2 hours')`,
+    [inst, coordinador],
   );
 
   return { estudiantes: estudiantes.length, docentes: docentes.length, calificaciones: totalDefinitivas, notasActividad: totalNotas };

@@ -4,13 +4,17 @@ import { getSession } from "@/lib/auth/session";
 import { getEncabezado } from "@/lib/auth/encabezado";
 import { NavLink } from "@/components/nav-link";
 import { MenuMovil } from "@/components/menu-movil";
+import { MarcaLateral, Orbitas } from "@/components/marca";
 import {
   IconAlert,
   IconBook,
   IconCalendar,
   IconChart,
   IconChecklist,
+  IconConsolidado,
   IconDocument,
+  IconEstrella,
+  IconMegafono,
   IconGrid,
   IconTable,
   IconUserPlus,
@@ -27,7 +31,8 @@ const ROL_LABEL: Record<Rol, string> = {
   GUARDIAN: "Acudiente",
 };
 
-type Seccion = { seccion: string; roles: Rol[]; items: { href: string; texto: string; icono: ReactNode; exacta?: boolean }[] };
+type Item = { href: string; texto: string; icono: ReactNode; exacta?: boolean; /** Si se da, restringe el ítem dentro de la sección. */ roles?: Rol[] };
+type Seccion = { seccion: string; roles: Rol[]; items: Item[] };
 
 /** Menú por rol. La autorización real está en cada página y acción (ver la matriz en lib/auth/session.ts). */
 const MENU: Seccion[] = [
@@ -45,12 +50,17 @@ const MENU: Seccion[] = [
       { href: "/coordinacion/seguimiento", texto: "Seguimiento de notas", icono: <IconChecklist /> },
       { href: "/coordinacion/corte", texto: "Corte preventivo", icono: <IconAlert /> },
       { href: "/coordinacion/carga", texto: "Carga académica", icono: <IconUsers /> },
+      { href: "/coordinacion/notas", texto: "Consolidado de notas", icono: <IconConsolidado /> },
+      { href: "/coordinacion/avisos", texto: "Avisos y comunicados", icono: <IconMegafono /> },
     ],
   },
   {
     seccion: "Convivencia",
-    roles: ["RECTOR", "COORDINATOR"],
-    items: [{ href: "/convivencia", texto: "Observador y procesos", icono: <IconAlert /> }],
+    roles: ["RECTOR", "COORDINATOR", "TEACHER"],
+    items: [
+      { href: "/convivencia", texto: "Observador y procesos", icono: <IconAlert />, exacta: true, roles: ["RECTOR", "COORDINATOR"] },
+      { href: "/convivencia/notas", texto: "Nota de convivencia", icono: <IconEstrella /> },
+    ],
   },
   {
     seccion: "Administración",
@@ -70,17 +80,24 @@ const MENU: Seccion[] = [
   {
     seccion: "Estudiante",
     roles: ["STUDENT", "GUARDIAN"],
-    items: [{ href: "/portal", texto: "Portal académico", icono: <IconDocument /> }],
+    items: [
+      { href: "/portal", texto: "Portal académico", icono: <IconDocument />, exacta: true },
+      { href: "/portal/avisos", texto: "Avisos del colegio", icono: <IconMegafono /> },
+    ],
   },
 ];
 
+function menuDe(rol: Rol): Seccion[] {
+  return MENU.filter((m) => m.roles.includes(rol))
+    .map((m) => ({ ...m, items: m.items.filter((i) => !i.roles || i.roles.includes(rol)) }))
+    .filter((m) => m.items.length > 0);
+}
+
 function Marca() {
   return (
-    <>
-      <span className="grid size-6 place-items-center rounded-sm bg-white text-[11px] font-semibold text-navy">K</span>
-      <span className="font-semibold tracking-tight text-white">Kora</span>
-      <span className="text-[11px] text-slate-400">Gestión académica</span>
-    </>
+    <Link href="/inicio" className="rounded-lg outline-offset-4">
+      <MarcaLateral />
+    </Link>
   );
 }
 
@@ -92,8 +109,9 @@ function Marca() {
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen">
-      <aside className="sticky top-0 hidden h-screen w-56 shrink-0 flex-col bg-navy text-slate-300 lg:flex">
-        <div className="flex h-14 items-center gap-2 border-b border-white/10 px-4">
+      <aside className="panel-kora sticky top-0 hidden h-screen w-60 shrink-0 flex-col overflow-hidden text-slate-300 lg:flex">
+        <Orbitas className="absolute -bottom-24 -left-28 size-80 opacity-40" />
+        <div className="relative flex h-16 items-center border-b border-white/10 px-4">
           <Marca />
         </div>
         <Suspense fallback={<div className="flex-1" />}>
@@ -102,7 +120,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-14 shrink-0 items-center justify-between gap-3 border-b border-line bg-surface px-4">
+        <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between gap-3 border-b border-line bg-surface/95 px-4 shadow-[0_1px_0_rgb(10_22_51/0.02)]">
           <Suspense fallback={<span className="h-4 w-64 rounded-sm bg-slate-100" />}>
             <BarraUsuario />
           </Suspense>
@@ -115,10 +133,10 @@ export default function AppLayout({ children }: { children: ReactNode }) {
 
 function Secciones({ secciones }: { secciones: Seccion[] }) {
   return (
-    <nav className="flex-1 space-y-4 px-2 py-3" aria-label="Principal">
+    <nav className="relative flex-1 space-y-5 overflow-y-auto px-2.5 py-4" aria-label="Principal">
       {secciones.map((s) => (
         <div key={s.seccion}>
-          <p className="px-2 pb-1 text-[11px] font-medium uppercase tracking-wider text-slate-500">{s.seccion}</p>
+          <p className="px-2.5 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-blue-200/45">{s.seccion}</p>
           {s.items.map((i) => (
             <NavLink key={i.href} href={i.href} icon={i.icono} exacta={i.exacta}>
               {i.texto}
@@ -132,12 +150,12 @@ function Secciones({ secciones }: { secciones: Seccion[] }) {
 
 async function MenuLateral() {
   const session = await getSession();
-  const secciones = session ? MENU.filter((m) => m.roles.includes(session.rol)) : [];
+  const secciones = session ? menuDe(session.rol) : [];
   return (
     <>
       <Secciones secciones={secciones} />
       {session && (
-        <div className="border-t border-white/10 px-4 py-3 text-[11px] leading-4 text-slate-400">
+        <div className="relative border-t border-white/10 bg-navy/40 px-4 py-3 text-[11px] leading-4 text-blue-100/60 backdrop-blur-sm">
           <p className="truncate text-slate-300">{session.institucion.nombre}</p>
           <p>{ROL_LABEL[session.rol]}</p>
         </div>
@@ -149,13 +167,13 @@ async function MenuLateral() {
 async function BarraUsuario() {
   const session = await getSession();
   if (!session) return null;
-  const secciones = MENU.filter((m) => m.roles.includes(session.rol));
+  const secciones = menuDe(session.rol);
   const e = await getEncabezado(session);
   return (
     <>
       <div className="flex min-w-0 items-center gap-3">
         <MenuMovil>
-          <div className="flex h-12 items-center gap-2 border-b border-white/10 px-4">
+          <div className="flex h-16 items-center border-b border-white/10 px-4">
             <Marca />
           </div>
           <Secciones secciones={secciones} />
@@ -163,7 +181,7 @@ async function BarraUsuario() {
         </MenuMovil>
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <span className="truncate font-semibold text-ink">{session.institucion.nombre}</span>
+            <span className="truncate font-display font-bold text-ink">{session.institucion.nombre}</span>
             {e.periodo && (
               <span
                 className={`hidden shrink-0 rounded-full border px-2 py-0.5 text-[11px] font-medium sm:inline ${
@@ -190,9 +208,12 @@ async function BarraUsuario() {
         <Link href="/cambiar-clave" className="hidden text-xs hover:text-ink hover:underline md:inline">
           Contraseña
         </Link>
+        <Link href="/privacidad" className="hidden text-xs hover:text-ink hover:underline md:inline">
+          Privacidad
+        </Link>
         {/* POST nativo a /salir (no Server Action): recarga completa, no deja páginas del usuario en memoria. */}
         <form action="/salir" method="post">
-          <button type="submit" className="rounded-lg border border-bad-line bg-bad-soft px-2.5 py-1 text-xs font-semibold text-bad hover:border-bad">
+          <button type="submit" className="btn-kora rounded-lg border border-bad-line bg-bad-soft px-3 py-1.5 text-xs font-semibold text-bad hover:border-bad hover:bg-bad hover:text-white">
             Salir
           </button>
         </form>

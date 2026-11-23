@@ -7,6 +7,8 @@ const SECCIONES = [
   { href: "/coordinacion/seguimiento", texto: "Seguimiento de notas" },
   { href: "/coordinacion/corte", texto: "Corte preventivo" },
   { href: "/coordinacion/carga", texto: "Carga académica" },
+  { href: "/coordinacion/notas", texto: "Consolidado de notas" },
+  { href: "/coordinacion/avisos", texto: "Avisos" },
 ];
 
 /** Encabezado estático de coordinación; cada página autoriza y carga sus datos detrás de <Suspense>. */

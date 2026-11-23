@@ -66,6 +66,8 @@ const cambioSchema = z.object({
 export async function cambiarClave(_prev: EstadoFormulario, formData: FormData): Promise<EstadoFormulario> {
   const session = await getSession();
   if (!session) redirect("/login");
+  // Sin la política aceptada la cuenta no se activa (Ley 1581): ni siquiera se fija la clave definitiva.
+  if (!session.politicaAceptada) redirect("/autorizacion-datos");
 
   const parsed = cambioSchema.safeParse({
     actual: formData.get("actual"),

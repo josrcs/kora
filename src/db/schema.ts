@@ -403,3 +403,71 @@ export const auditLog = pgTable("audit_log", {
   despues: jsonb("despues"),
   createdAt: createdAt(),
 });
+
+/* ------------------------------------------------------------------ */
+/*  0007 · Convivencia, avisos y autorización de datos                 */
+/* ------------------------------------------------------------------ */
+export const audienciaAviso = pgEnum("audiencia_aviso", ["TODOS", "ESTUDIANTES", "ACUDIENTES"]);
+export const tipoAviso = pgEnum("tipo_aviso", ["AVISO", "COMUNICADO", "URGENTE"]);
+export const tipoConsentimiento = pgEnum("tipo_consentimiento", ["ACEPTACION_USUARIO", "AUTORIZACION_REPRESENTANTE"]);
+export type AudienciaAviso = (typeof audienciaAviso.enumValues)[number];
+export type TipoAviso = (typeof tipoAviso.enumValues)[number];
+
+/** Nota de convivencia por estudiante y periodo (coordinación o director de grupo). */
+export const convivenciaGrades = pgTable(
+  "convivencia_grades",
+  {
+    id: id(),
+    institutionId: tenant(),
+    enrollmentId: uuid("enrollment_id").notNull(),
+    periodId: uuid("period_id").notNull(),
+    nota: nota("nota").notNull(),
+    observacion: varchar("observacion", { length: 1000 }),
+    updatedBy: uuid("updated_by").notNull(),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [unique("convivencia_grades_uq").on(t.enrollmentId, t.periodId)],
+);
+
+export const announcements = pgTable("announcements", {
+  id: id(),
+  institutionId: tenant(),
+  autorId: uuid("autor_id").notNull(),
+  tipo: tipoAviso("tipo").notNull().default("AVISO"),
+  audiencia: audienciaAviso("audiencia").notNull().default("TODOS"),
+  titulo: varchar("titulo", { length: 140 }).notNull(),
+  cuerpo: varchar("cuerpo", { length: 5000 }).notNull(),
+  fijado: boolean("fijado").notNull().default(false),
+  archivadoAt: timestamp("archivado_at", { withTimezone: true }),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+export const announcementReads = pgTable(
+  "announcement_reads",
+  {
+    institutionId: tenant(),
+    announcementId: uuid("announcement_id").notNull(),
+    userId: uuid("user_id").notNull(),
+    leidoAt: timestamp("leido_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.announcementId, t.userId] })],
+);
+
+/** Registro inmutable de aceptaciones, rechazos y revocatorias de la política de datos. */
+export const dataConsents = pgTable("data_consents", {
+  id: id(),
+  institutionId: tenant(),
+  userId: uuid("user_id").notNull(),
+  tipo: tipoConsentimiento("tipo").notNull(),
+  version: varchar("version", { length: 20 }).notNull(),
+  aceptado: boolean("aceptado").notNull(),
+  representanteNombre: varchar("representante_nombre", { length: 161 }),
+  representanteDocumento: varchar("representante_documento", { length: 20 }),
+  representanteParentesco: varchar("representante_parentesco", { length: 40 }),
+  registradoPor: uuid("registrado_por").notNull(),
+  ip: inet("ip"),
+  userAgent: varchar("user_agent", { length: 300 }),
+  createdAt: createdAt(),
+});

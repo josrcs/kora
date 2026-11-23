@@ -1,6 +1,9 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { Logotipo, Orbitas } from "@/components/marca";
 import { iniciarSesion, type EstadoFormulario } from "../actions";
 import { CLAVES_DEMO, PERFILES, type CuentaDemo, type PerfilId } from "../demo";
 import type { InstitucionPublica } from "../server/instituciones";
@@ -40,11 +43,14 @@ export function Ingreso({
   instituciones,
   inicialSlug,
   cuentasDemo,
+  avisoPolitica = null,
 }: {
   instituciones: InstitucionPublica[];
   inicialSlug: string | null;
   /** Solo llegan fuera de producción. */
   cuentasDemo: CuentaDemo[];
+  /** Tras no aceptar o revocar la política de datos. */
+  avisoPolitica?: "rechazada" | "revocada" | null;
 }) {
   const [estado, accion, pendiente] = useActionState(iniciarSesion, inicial);
   const [lista, setLista] = useState(instituciones);
@@ -94,35 +100,41 @@ export function Ingreso({
   const detectarMayusculas = (e: React.KeyboardEvent<HTMLInputElement>) => setMayusculas(e.getModifierState("CapsLock"));
 
   return (
-    <div className="grid w-full max-w-6xl overflow-hidden rounded-2xl bg-surface shadow-[0_1px_2px_rgb(0_0_0/0.04),0_8px_24px_-12px_rgb(0_0_0/0.12)] lg:grid-cols-[2fr_3fr]">
-      {/* ------------ Panel institucional ------------ */}
-      <aside className="flex flex-col bg-petroleo px-6 py-5 text-white sm:px-10 lg:py-10">
-        <p className="inline-flex w-fit items-center gap-2 rounded-md border border-white/20 bg-white/5 px-3 py-1.5 text-xs font-semibold tracking-wide uppercase max-lg:hidden">
-          <Icono className="size-3.5">
-            <path d="M2 3h4.5A1.5 1.5 0 0 1 8 4.5V13a1.5 1.5 0 0 0-1.5-1.5H2V3Zm12 0H9.5A1.5 1.5 0 0 0 8 4.5V13a1.5 1.5 0 0 1 1.5-1.5H14V3Z" />
-          </Icono>
-          Decreto 1290 · Multi-colegio
+    <div className="grid w-full max-w-6xl overflow-hidden rounded-3xl bg-surface shadow-elevada ring-1 ring-navy/5 lg:grid-cols-[2fr_3fr]">
+      {/* ------------ Panel de marca ------------ */}
+      <aside className="panel-kora relative flex flex-col overflow-hidden px-6 py-6 text-white sm:px-10 lg:py-10">
+        <Orbitas className="absolute -top-24 -right-24 size-[26rem] opacity-70 max-lg:hidden" />
+        <Orbitas className="absolute -bottom-40 -left-32 size-[22rem] rotate-180 opacity-40 max-lg:hidden" />
+
+        <p className="anim-entrar relative inline-flex w-fit items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-3 py-1.5 text-[11px] font-semibold tracking-[0.12em] uppercase backdrop-blur-sm max-lg:hidden">
+          <span className="relative grid size-2 place-items-center rounded-full bg-cielo text-cielo anim-pulso" />
+          Decreto 1290 · Ley 1581 · Multi-colegio
         </p>
-        <div className="flex items-center gap-3 lg:mt-8">
-          <span className="grid size-12 place-items-center rounded-xl bg-sol text-xl font-bold text-petroleo">K</span>
-          <div>
-            <p className="text-3xl leading-8 font-bold tracking-tight">Kora</p>
-            <p className="text-sm text-teal-200">Gestión académica y convivencia</p>
+
+        <div className="relative flex items-center gap-4 lg:mt-10 lg:flex-col lg:items-start">
+          <Image src="/kora-emblema-claro.png" alt="" width={160} height={160} priority className="anim-flotar size-14 drop-shadow-[0_12px_30px_rgb(47_127_234/0.45)] lg:size-36" />
+          <div className="anim-entrar">
+            <Logotipo claro className="text-3xl lg:text-5xl" />
+            <p className="mt-1.5 text-sm font-medium tracking-wide text-blue-200/90 lg:text-base">Plataforma de Gestión Académica</p>
           </div>
         </div>
-        <h1 className="mt-10 text-2xl max-lg:hidden leading-tight font-bold tracking-tight text-balance">Control institucional con privacidad estricta por usuario.</h1>
-        <p className="mt-4 text-sm leading-6 text-teal-100/90 max-lg:hidden">
-          Cada colegio opera en un espacio aislado. Los estudiantes y acudientes acceden únicamente a su propio boletín, asistencia y
-          observador, con su documento y contraseña.
+
+        <h1 className="relative mt-10 text-2xl leading-tight font-bold text-balance max-lg:hidden">
+          Notas, convivencia y comunicados, <span className="bg-gradient-to-r from-cielo to-blue-300 bg-clip-text text-transparent">en un solo lugar</span>.
+        </h1>
+        <p className="relative mt-3 text-sm leading-6 text-blue-100/80 max-lg:hidden">
+          Cada colegio opera en un espacio aislado. Estudiantes y acudientes ven únicamente su propio boletín, asistencia, convivencia y
+          avisos del colegio.
         </p>
-        <ul className="mt-auto space-y-4 border-t border-white/15 pt-6 text-sm leading-5 text-teal-50 max-lg:hidden">
+
+        <ul className="anim-escalonado relative mt-auto space-y-3 pt-8 text-sm leading-5 text-blue-50/90 max-lg:hidden">
           {[
-            ["Rectoría", "promedios de la institución curso por curso y anotaciones disciplinarias, sin modificar notas."],
-            ["Coordinación", "edición de calificaciones, cierre de periodos y procesos disciplinarios."],
-            ["Estudiantes y acudientes", "acceso autenticado y 100 % individual."],
+            ["Coordinación", "calificaciones, cierre de periodos, avisos y comunicados."],
+            ["Estudiantes y acudientes", "boletín, nota de convivencia y avisos, con acceso 100 % individual."],
+            ["Datos protegidos", "tratamiento conforme a la Ley 1581 de 2012 y al Código de Infancia y Adolescencia."],
           ].map(([t, d]) => (
-            <li key={t} className="flex gap-3">
-              <Icono className="mt-0.5 size-4 shrink-0 text-sol">
+            <li key={t} className="flex gap-3 rounded-xl border border-white/10 bg-white/[0.04] px-3.5 py-3 backdrop-blur-sm">
+              <Icono className="mt-0.5 size-4 shrink-0 text-cielo">
                 <path d="m3.5 8.5 3 3 6-7" />
               </Icono>
               <span>
@@ -131,13 +143,25 @@ export function Ingreso({
             </li>
           ))}
         </ul>
-        <p className="mt-6 text-[11px] text-teal-200/70 max-lg:hidden">Datos personales tratados conforme a la Ley 1581 de 2012.</p>
       </aside>
 
       {/* ------------ Formulario ------------ */}
       <form action={accion} className="space-y-7 px-6 py-8 sm:px-10 sm:py-10" noValidate>
         <input type="hidden" name="slug" value={seleccion?.slug ?? ""} />
         <input type="hidden" name="perfil" value={perfil} />
+
+        <div className="anim-entrar">
+          <p className="text-xs font-semibold tracking-[0.14em] text-cielo uppercase">Bienvenido</p>
+          <p className="mt-1 font-display text-2xl font-bold text-ink">Ingresa a tu cuenta Kora</p>
+        </div>
+
+        {avisoPolitica && (
+          <p role="status" className="anim-pop rounded-xl border border-warn-line bg-warn-soft px-4 py-3 text-sm leading-5 text-warn">
+            {avisoPolitica === "revocada"
+              ? "Revocó su autorización de tratamiento de datos y se cerró su sesión. Para volver a usar Kora deberá aceptarla de nuevo."
+              : "No aceptó la política de tratamiento de datos: su cuenta no se activó. Si cambia de opinión, ingrese de nuevo y acéptela, o comuníquese con la secretaría del colegio."}
+          </p>
+        )}
 
         <section aria-labelledby="paso-1" className="space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
@@ -164,7 +188,7 @@ export function Ingreso({
               className="h-11 w-full rounded-lg border border-line bg-canvas pr-3 pl-10 outline-none placeholder:text-muted focus-visible:border-petroleo focus-visible:ring-2 focus-visible:ring-petroleo/20"
             />
           </label>
-          <div role="radiogroup" aria-label="Institución" className="grid gap-3 sm:grid-cols-3">
+          <div role="radiogroup" aria-label="Institución" className="anim-escalonado grid gap-3 sm:grid-cols-3">
             {visibles.map((i) => {
               const activa = i.slug === seleccion?.slug;
               return (
@@ -174,7 +198,7 @@ export function Ingreso({
                   role="radio"
                   aria-checked={activa}
                   onClick={() => setSeleccion(i)}
-                  className={`relative flex min-h-28 flex-col justify-end rounded-xl border p-4 text-left transition-colors ${
+                  className={`tarjeta-viva relative flex min-h-28 flex-col justify-end rounded-xl border p-4 text-left ${
                     activa ? "border-petroleo bg-petroleo-soft ring-1 ring-petroleo" : "border-line hover:border-line-strong hover:bg-canvas"
                   }`}
                 >
@@ -186,7 +210,7 @@ export function Ingreso({
                   >
                     {iniciales(i.nombre)}
                   </span>
-                  {activa && <span className="absolute top-3 right-3 rounded-full bg-petroleo px-2 py-0.5 text-[11px] font-semibold text-white">Seleccionada</span>}
+                  {activa && <span className="anim-pop absolute top-3 right-3 rounded-full bg-petroleo px-2 py-0.5 text-[11px] font-semibold text-white">Seleccionada</span>}
                   <span className="mt-10 line-clamp-2 font-semibold leading-5 text-ink">{i.nombre}</span>
                   <span className="mt-0.5 text-xs text-muted">
                     {i.municipio}, {i.departamento}
@@ -214,8 +238,8 @@ export function Ingreso({
                   role="radio"
                   aria-checked={activo}
                   onClick={() => setPerfil(p.id)}
-                  className={`flex h-11 items-center justify-center gap-2 rounded-lg border text-sm font-medium transition-colors ${
-                    activo ? "border-petroleo bg-petroleo text-white" : "border-line text-ink-soft hover:bg-canvas"
+                  className={`btn-kora flex h-11 items-center justify-center gap-2 rounded-lg border text-sm font-medium transition-colors ${
+                    activo ? "border-petroleo bg-petroleo text-white shadow-[0_6px_16px_-8px_rgb(18_58_156/0.7)]" : "border-line text-ink-soft hover:border-cielo/50 hover:bg-cielo-soft"
                   } ${estado.campo === "perfil" && !activo ? "border-warn-line" : ""}`}
                 >
                   <Icono>{ICONO_PERFIL[p.id]}</Icono>
@@ -325,17 +349,24 @@ export function Ingreso({
           <button
             type="submit"
             disabled={pendiente || !seleccion}
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-petroleo text-base font-semibold text-white hover:bg-petroleo-hover disabled:cursor-not-allowed disabled:opacity-60"
+            className="btn-kora group flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-petroleo to-brand text-base font-semibold text-white shadow-[0_10px_24px_-12px_rgb(26_79_208/0.8)] hover:from-petroleo-hover hover:to-brand-hover disabled:cursor-not-allowed disabled:opacity-60 disabled:shadow-none"
           >
             {pendiente ? "Verificando…" : seleccion ? `Iniciar sesión como ${perfilActual.texto}` : "Seleccione su institución"}
             {!pendiente && seleccion && (
-              <Icono>
+              <Icono className="size-4 transition-transform group-hover:translate-x-1">
                 <path d="M3 8h10M9 4l4 4-4 4" />
               </Icono>
             )}
           </button>
           <p className="text-center text-xs text-muted">
             ¿Olvidó su contraseña? La secretaría del colegio le asigna una clave temporal; al ingresar deberá cambiarla.
+          </p>
+          <p className="rounded-xl border border-line bg-canvas px-4 py-3 text-center text-xs leading-5 text-ink-soft">
+            Para usar Kora debe aceptar la{" "}
+            <Link href="/politica-de-datos" target="_blank" className="font-semibold text-brand underline-offset-2 hover:underline">
+              Política de Tratamiento de Datos Personales
+            </Link>{" "}
+            (Ley 1581 de 2012). Los datos de menores de edad se tratan con autorización de su representante legal.
           </p>
         </section>
       </form>
